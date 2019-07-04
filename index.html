@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  
+<meta charset="UTF-8">
+<meta name="description" content="A black hole for bitcoin">
+<meta name="keywords" content="HTML,bitcoin,blackhole,cryptocurrency">
+<meta name="author" content="BitcoinBlackHole">  
+  
+<head>
+  <title>Bitcoin Black Hole</title>
+  <style>
+    * { padding: 20; margin: 20; }
+    canvas { background: #eee; display: block; margin: 20 auto; }
+  </style>
+  <style type="text/css">
+  <!--
+   .tab { margin-left: 20px; }
+   .tab2 { margin-left: 40px; }
+  -->
+  </style>
+</head>  
+  
+<body>
+
+  <h1>Bitcoin Black Hole</h1>
+  <p class="tab">&#128540; Feed me, just a little, if you dare  &#64;</p>
+  <p class="tab2" style="font-family:courier;"><mark>1Bkcok3KgqmDReasQzYiBq86WNZea6424o</mark>  <img src="qr.png" style="width:100px; height:100px;" /></p>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var period = 2000; // [miliseconds]
+var radius = 0;
+var mass = 1000;
+var newmass = 1000;
+var x = canvas.width/2;
+var y = canvas.height/2;
+var lastFrameTimeMs = -10000;
+
+function drawBH(radius) {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI*2);
+  ctx.fillStyle = "#243665";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawScore() {
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("mass: "+mass, 8, 20);
+}
+
+
+
+function draw(timestamp) {
+  // read address balance
+  if (timestamp - lastFrameTimeMs > 10000 ) {
+  var request = new XMLHttpRequest();
+  request.open('GET', 'https://blockchain.info/q/addressbalance/1Bkcok3KgqmDReasQzYiBq86WNZea6424o?confirmations=3');
+  request.onreadystatechange = function () {
+    if (this.readyState === 4) {
+      console.log('Status:', this.status);
+      console.log('Headers:', this.getAllResponseHeaders());
+      console.log('Body:', this.responseText);
+      newmass = parseInt(this.responseText,10);
+    }
+  };
+  request.send();
+  lastFrameTimeMs = timestamp;
+  }
+  //mass = 100000000;
+  if (newmass>mass) mass = mass + parseInt((newmass - mass) / 20);
+  if (newmass>mass) mass = mass + 1;
+		
+	
+  // draw the BH
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  var linearMod = Date.now() % period / period; // this goes from 0 to 1
+  radius = Math.sqrt(mass) /10 * (0.1+Math.sin(linearMod * Math.PI));
+  drawBH(radius);
+  drawScore();
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+</script>
+
+<p> <small>&copy; bitcoinblackhole (2019)</small></p>
+
+</body>
+</html>
